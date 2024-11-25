@@ -1,14 +1,13 @@
 import org.openqa.selenium.By;
-import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import java.time.Duration;
-import java.util.List;
 
 public class OrangeHRMTest extends TestBase {
     private final String baseUrl = "https://opensource-demo.orangehrmlive.com/";
@@ -46,30 +45,27 @@ public class OrangeHRMTest extends TestBase {
     @Test(priority = 3, dependsOnMethods = {"navigateToAssignLeave"})
     public void assignLeave() throws InterruptedException {
 
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(40));
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
         WebElement employeeNameInput = wait.until(ExpectedConditions.visibilityOfElementLocated(
                 By.xpath("//input[@placeholder='Type for hints...']")));
         employeeNameInput.clear();
-        employeeNameInput.sendKeys("F");
+        employeeNameInput.sendKeys("Ranga  Akunuri");
 
         wait.until(ExpectedConditions.invisibilityOfElementLocated(By.xpath("//div[@role='option' and text()='Searching....']")));
 
-        // Debugging: Print out all the available name options according to the entered keyword 'J'
-        List<WebElement> dropdownNameOptions = wait.until(ExpectedConditions.visibilityOfAllElementsLocatedBy(
+        // Debugging: Print out all the available name options according to the entered keyword '...'
+        /*List<WebElement> dropdownNameOptions = wait.until(ExpectedConditions.visibilityOfAllElementsLocatedBy(
                 By.xpath("//div[@role='option']")));
         System.out.println("\nDropdown name options loaded:");
         for (WebElement option : dropdownNameOptions) {
             System.out.println("- option: " + option.getText());
-        }
+        }*/
 
-        // WebElement nameOption = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//div[@role='option' and contains(text(),'James Butler')]"))); // TimeoutException (NoSuchElement)
+        // WebElement nameOption = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//div[@role='option' and text()='Joseph  Evans')]"))); // TimeoutException (NoSuchElement)
         WebElement nameOption = wait.until(ExpectedConditions.visibilityOfElementLocated(
-                By.xpath("(//div[@role='option'])[2]")));
+                By.xpath("(//div[@role='option'])[1]")));
         nameOption.click();
-        Thread.sleep(2000); // 3 sec, to see the result
-
-        // Debugging Name
-        System.out.println("Clicked on dropdown name option: " + nameOption);
+        Thread.sleep(3000); // to see the result
 
         // Leave type
         driver.findElement(By.xpath("//div[text()='-- Select --']")).click();
@@ -77,19 +73,15 @@ public class OrangeHRMTest extends TestBase {
         // WebElement leaveTypeOption = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//div[contains(text(),'US - Vacation')]"))); // TimeoutException (NoSuchElement)
         WebElement leaveTypeOption = wait.until(ExpectedConditions.visibilityOfElementLocated(
                 By.xpath("(//div[@role='option'])[11]")));
-        Thread.sleep(3000); // 3 sec, to see the result
+        Thread.sleep(2000); // to see the result
         leaveTypeOption.click();
-
-        // Debugging Leave Type
-        System.out.println("Clicked on dropdown leave type option: " + leaveTypeOption);
 
         // From Date
         //WebElement fromDateField = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//input[@placeholder='yyyy-dd-mm']"))); // as an option
         WebElement fromDateField = wait.until(ExpectedConditions.elementToBeClickable(
                 By.cssSelector("input[placeholder='yyyy-dd-mm']")));
         fromDateField.sendKeys("2020-10-19");
-
-        Thread.sleep(3000); // 3 sec, to see the result
+        Thread.sleep(2000); // to see the result
 
         // To Date
         // WebElement toDateField = driver.findElement(By.xpath("(//i[@class='oxd-icon bi-calendar oxd-date-input-icon'])[2]")).click(); - another option, second calendar icon
@@ -98,7 +90,7 @@ public class OrangeHRMTest extends TestBase {
         toDateField.sendKeys(Keys.chord(Keys.CONTROL, "a"));
         toDateField.sendKeys(Keys.BACK_SPACE);
         toDateField.sendKeys("2020-10-23");
-        Thread.sleep(3000); // 3 sec, to see the result
+        Thread.sleep(2000); // to see the result
 
         // Partial Days - there's no option "None" as in the task, should I just choose "--Select--" from dropdown menu?; !Dropdown menu doesn't show; is it 2d or 3d occurrence of dropdown menu ("Duration"-2d?)
         /*WebElement partialDaysArrow = wait.until(ExpectedConditions.elementToBeClickable(
@@ -112,66 +104,51 @@ public class OrangeHRMTest extends TestBase {
 
         // Comments
         driver.findElement(By.className("oxd-textarea--active")).sendKeys("- Not required -");
-        Thread.sleep(3000); // 3 sec, to see the result
+        Thread.sleep(2000); // to see the result
 
         // Click the "Assign" button
         driver.findElement(By.xpath("//button[@type='submit' and contains(@class, 'oxd-button--secondary')]")).click();
-        Thread.sleep(3000); // 3 sec, to see the result
+        System.out.println("Assign button clicked");
+        Thread.sleep(2000); // to see the result
 
-        // Confirm Leave Assignment with OK button and validate - even when Success msg is visible prints "failed" - ?!
-        /*try {
-            //WebElement confirmationDialog = wait.until(ExpectedConditions.visibilityOfElementLocated(
-            WebElement okButton = wait.until(ExpectedConditions.elementToBeClickable(
-                    // By.xpath("//button[@type='button' and contains(@class, 'oxd-button--secondary') and text()='Ok']"))); // "Confirmation failed"
-                    // By.xpath("//button[text()='Ok' and contains(@class, 'oxd-button--secondary')]"))); // "Confirmation failed"
-                    // By.cssSelector("button.oxd-button--secondary"))); // "Confirmation failed"
-                    // By.xpath("//button[contains(@class,'oxd-button--secondary') and text()='Ok']"))); // "Confirmation failed"
-                    By.xpath("//div[contains(@class, 'orangehrm-modal-footer')]//button[text()='Ok']")));
+        // Confirm Leave Assignment with OK button and validate
+        try {
+            WebElement dialog = driver.findElement(By.cssSelector(".orangehrm-modal-footer"));
+            WebElement okButton = dialog.findElement(By.cssSelector(".oxd-button--secondary"));
+            System.out.println("okButton: " + okButton.getText());
 
+            Actions actions = new Actions(driver);
+            actions.moveToElement(okButton).click().perform();
 
-
-            okButton.click();
             System.out.println("Assign confirmed");
         } catch (Exception e) {
-            System.out.println("Confirmation failed");
-        }*/
+            System.out.println("\nConfirmation failed");
+        }
+        Thread.sleep(3000); // to see the result
 
-        // Switch to the iframe (if the modal is inside one)
-        driver.switchTo().frame("iframeNameOrID");
-
-// Now interact with the "Ok" button inside the iframe
-        WebElement okButton = wait.until(ExpectedConditions.elementToBeClickable(
-                By.xpath("//button[contains(@class,'oxd-button--secondary') and text()='Ok']")));
-        okButton.click();
-
-// Switch back to the main page
-        driver.switchTo().defaultContent();
-
-
-        // Wait for the toast container to appear and validate Leave Assignment (option 2) // TimeoutException
-        /*WebElement toastContainer = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("oxd-toaster_1")));
+        // Wait for the toast container to appear and validate Leave Assignment
+        WebElement toastContainer = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("oxd-toaster_1")));
         String toastMessage = toastContainer.getText();
         System.out.println("Toast message: " + toastMessage);
-        Assert.assertTrue(toastMessage.contains("Successfully Saved"), "Assignment was not successful!");*/
-
-        // Validate Leave Assignment (option 3) // TimeoutException
-        /*WebElement successMessage = wait.until(ExpectedConditions.visibilityOfElementLocated(
-                By.xpath("//*[contains(text(),'Successfully Saved')]")));
-        Assert.assertTrue(successMessage.isDisplayed(), "Leave assignment failed!");*/
+        Assert.assertTrue(toastMessage.contains("Successfully Saved"), "Assignment was not successful!");
+        Thread.sleep(2000); // to see the result
     }
 
     @Test(priority = 4, dependsOnMethods = {"assignLeave"})
-    public void logoutAndClose() {
-        // Logout
+    public void logoutAndClose() throws InterruptedException {
         WebElement userDropdown = driver.findElement(By.cssSelector("p.oxd-userdropdown-name"));
         userDropdown.click();
+        Thread.sleep(3000); // to see the result
 
         WebElement logoutLink = driver.findElement(By.xpath("//a[@class='oxd-userdropdown-link' and contains(text(), 'Logout')]"));
         logoutLink.click();
+        Thread.sleep(3000); // to see the result
 
         // Validate logout success
-        // WebElement loginPanel = driver.findElement(By.id("logInPanelHeading")); // ?
-        //Assert.assertTrue(loginPanel.isDisplayed(), "Logout failed!");
+        WebElement loginTitle = driver.findElement(By.cssSelector("h5.oxd-text--h5.orangehrm-login-title"));
+        Assert.assertTrue(loginTitle.isDisplayed(), "Logout failed!");
+        System.out.println("Successfully Loged Out");
+        Thread.sleep(3000); // to see the result
     }
 }
 
